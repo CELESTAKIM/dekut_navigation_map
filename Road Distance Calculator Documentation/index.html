@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Road Distance Calculator Documentation</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<style>
+    * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f9f9f9;
+}
+
+.container {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: 250px;
+    background-color: #2c3e50;
+    color: white;
+    padding: 20px;
+    position: fixed;
+    height: 100%;
+    overflow-y: auto;
+    transition: transform 0.3s ease;
+}
+
+.sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.sidebar-header h2 {
+    font-size: 1.5rem;
+}
+
+.sidebar-toggle {
+    display: none;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+.sidebar ul {
+    list-style: none;
+}
+
+.sidebar ul li {
+    margin: 10px 0;
+}
+
+.sidebar ul li a {
+    color: #ecf0f1;
+    text-decoration: none;
+    font-size: 1rem;
+    display: block;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+.sidebar ul li a:hover {
+    background-color: #34495e;
+}
+
+.sidebar-footer {
+    margin-top: 20px;
+}
+
+.btn {
+    display: block;
+    text-align: center;
+    padding: 10px;
+    background-color: #3498db;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+.btn:hover {
+    background-color: #2980b9;
+}
+
+.content {
+    margin-left: 250px;
+    padding: 40px;
+    flex: 1;
+    background-color: white;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+header h1 {
+    font-size: 2.5rem;
+    color: #2c3e50;
+}
+
+header p {
+    color: #7f8c8d;
+}
+
+section {
+    margin-bottom: 40px;
+}
+
+section h2 {
+    font-size: 2rem;
+    color: #2c3e50;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 10px;
+}
+
+.collapsible {
+    margin-bottom: 20px;
+}
+
+.collapsible h3 {
+    font-size: 1.5rem;
+    color: #34495e;
+    cursor: pointer;
+    padding: 10px;
+    background-color: #ecf0f1;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.collapsible h3::after {
+    content: '\f107';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+}
+
+.collapsible.active h3::after {
+    content: '\f106';
+}
+
+.collapsible-content {
+    display: none;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+}
+
+.collapsible.active .collapsible-content {
+    display: block;
+}
+
+ul {
+    list-style: disc;
+    margin-left: 20px;
+}
+
+pre {
+    background-color: #2c3e50;
+    color: white;
+    padding: 15px;
+    border-radius: 4px;
+    overflow-x: auto;
+}
+
+a {
+    color: #3498db;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(-100%);
+        width: 100%;
+        z-index: 1000;
+    }
+
+    .sidebar.active {
+        transform: translateX(0);
+    }
+
+    .sidebar-toggle {
+        display: block;
+    }
+
+    .content {
+        margin-left: 0;
+        padding: 20px;
+    }
+
+    header h1 {
+        font-size: 2rem;
+    }
+
+    section h2 {
+        font-size: 1.8rem;
+    }
+
+    .collapsible h3 {
+        font-size: 1.3rem;
+    }
+}
+
+@media (max-width: 480px) {
+    header h1 {
+        font-size: 1.8rem;
+    }
+
+    section h2 {
+        font-size: 1.5rem;
+    }
+
+    .collapsible h3 {
+        font-size: 1.2rem;
+    }
+
+    .content {
+        padding: 15px;
+    }
+}
+</style>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2>Road Distance Calculator</h2>
+                <button class="sidebar-toggle"><i class="fas fa-bars"></i></button>
+            </div>
+            <ul>
+                <li><a href="#overview">Project Overview</a></li>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#technical-details">Technical Details</a></li>
+                <li><a href="#setup">Setup Instructions</a></li>
+                <li><a href="#usage">Usage Guide</a></li>
+                <li><a href="#limitations">Known Limitations</a></li>
+                <li><a href="#enhancements">Future Enhancements</a></li>
+                <li><a href="#troubleshooting">Troubleshooting</a></li>
+                <li><a href="#license">License</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+            <div class="sidebar-footer">
+                <a href="https://github.com/CELESTAKIM/dekut_navigation_map" target="_blank" class="btn">View on GitHub</a>
+                <a href="https://your-live-demo-url.com" target="_blank" class="btn">Live Demo</a>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="content">
+            <header>
+                <h1>Road Distance Calculator Documentation</h1>
+                <p>Version 1.0 | April 20, 2025</p>
+            </header>
+
+            <section id="overview">
+                <h2>Project Overview</h2>
+                <p><strong>Project Name:</strong> Road Distance Calculator</p>
+                <p><strong>Version:</strong> 1.0</p>
+                <p><strong>Date:</strong> April 20, 2025</p>
+                <p><strong>Author:</strong>KIMATHI JORAM -<em>GIS AND REMOTE SENSING </em> </p>
+                <p><strong>Description:</strong> The Road Distance Calculator is a web-based application built using Leaflet.js and OpenStreetMap to calculate the road distance and estimated travel time between selected points. It supports both predefined road points and custom points, with features like draggable controls, a responsive sidebar, and interactive map visualizations.</p>
+                <p><strong>Objective:</strong> Provide users with an intuitive tool to measure distances along predefined road points or custom locations, visualize routes on a map, and estimate travel times based on user-defined speeds.</p>
+            </section>
+
+            <section id="features">
+                <h2>Features</h2>
+                <div class="collapsible">
+                    <h3>Interactive Map</h3>
+                    <ul>
+                        <li>Displays a map using Leaflet.js with OpenStreetMap tiles.</li>
+                        <li>Users can click to add points, view popups with images, and visualize routes.</li>
+                        <li>Supports zooming and panning for detailed exploration.</li>
+                    </ul>
+                </div>
+                <div class="collapsible">
+                    <h3>Point Selection Modes</h3>
+                    <ul>
+                        <li><strong>Restrict to Road Points:</strong> Limits point selection to predefined road points, calculating distances along sequential paths.</li>
+                        <li><strong>Select Anywhere:</strong> Allows users to add custom points by clicking on the map or entering coordinates manually.</li>
+                    </ul>
+                </div>
+                <div class="collapsible">
+                    <h3>Route Calculation</h3>
+                    <ul>
+                        <li>Calculates the total distance between selected points in meters.</li>
+                        <li>Estimates travel time based on a user-defined speed (default: 50 km/h).</li>
+                        <li>Displays a polyline track on the map when enabled.</li>
+                    </ul>
+                </div>
+                <div class="collapsible">
+                    <h3>Sidebar Interface</h3>
+                    <ul>
+                        <li>Displays route details, including selected points and their names.</li>
+                        <li>Allows manual addition of points via latitude/longitude inputs.</li>
+                        <li>Includes a dropdown to select predefined road points.</li>
+                    </ul>
+                </div>
+                <div class="collapsible">
+                    <h3>Responsive Design</h3>
+                    <ul>
+                        <li>Adapts to various screen sizes (desktop, tablet, mobile) with media queries.</li>
+                        <li>Features a collapsible sidebar on mobile devices with a toggle button.</li>
+                        <li>Ensures visibility of distance and time estimates on smaller screens.</li>
+                    </ul>
+                </div>
+                <div class="collapsible">
+                    <h3>Draggable Elements</h3>
+                    <ul>
+                        <li>Map popups and control panels are draggable for flexible positioning.</li>
+                        <li>Enhances user experience by allowing customization of the interface layout.</li>
+                    </ul>
+                </div>
+                <div class="collapsible">
+                    <h3>Additional Controls</h3>
+                    <ul>
+                        <li>Toggle between restricted and free point selection modes.</li>
+                        <li>Clear all selected points and reset the map.</li>
+                        <li>Enable/disable the route track visualization.</li>
+                        <li>Adjust travel speed for time estimation.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="technical-details">
+                <h2>Technical Details</h2>
+                <div class="collapsible">
+                    <h3>Technology Stack</h3>
+                    <ul>
+                        <li><strong>HTML5:</strong> Structure of the web application.</li>
+                        <li><strong>CSS3:</strong> Styling, including responsive design with media queries.</li>
+                        <li><strong>JavaScript:</strong> Core logic for map interactions, distance calculations, and UI updates.</li>
+                        <li><strong>Leaflet.js:</strong> Open-source JavaScript library for interactive maps.</li>
+                        <li><strong>OpenStreetMap:</strong> Provides map tiles for the background layer.</li>
+                    </ul>
+                    <p><strong>External Resources:</strong></p>
+                    <ul>
+                        <li>Leaflet CSS: <a href="https://unpkg.com/leaflet/dist/leaflet.css" target="_blank">https://unpkg.com/leaflet/dist/leaflet.css</a></li>
+                        <li>Leaflet JS: <a href="https://unpkg.com/leaflet/dist/leaflet.js" target="_blank">https://unpkg.com/leaflet/dist/leaflet.js</a></li>
+                        <li>Google Maps Icons: Used for start (green) and end (red) markers.</li>
+                    </ul>
+                </div>
+                <div class="collapsible">
+                    <h3>File Structure</h3>
+                    <pre>
+road-distance-calculator/
+├── index.html          # Main HTML file containing structure, styles, and scripts
+├── images/             # Directory for point images (e.g., image1.jpg to image28.jpg)
+└── README.md           # Project documentation (optional)
+                    </pre>
+                </div>
+                <div class="collapsible">
+                    <h3>Key Components</h3>
+                    <p><strong>HTML Structure:</strong></p>
+                    <ul>
+                        <li><code>&lt;div id="sidebar"&gt;</code>: Contains route details, point selection dropdown, and manual coordinate inputs.</li>
+                        <li><code>&lt;div id="map-container"&gt;</code>: Hosts the map, controls, and distance/time displays.</li>
+                        <li><code>&lt;div class="controls"&gt;</code>: Draggable panel with buttons and inputs for mode toggle, clearing points, and speed adjustment.</li>
+                    </ul>
+                    <p><strong>CSS:</strong></p>
+                    <ul>
+                        <li><strong>Responsive Design:</strong> Uses <code>@media</code> queries for <code>max-width: 768px</code> and <code>max-width: 480px</code> to adjust layout for mobile devices.</li>
+                        <li><strong>Styling:</strong> Applies flexbox for layout, transitions for smooth animations, and z-index for layering.</li>
+                        <li><strong>Customizations:</strong> Ensures immediate visibility of <code>#distance</code> and <code>#timeEstimate</code> with <code>opacity: 1</code> and <code>z-index: 1003</code> in media queries.</li>
+                    </ul>
+                    <p><strong>JavaScript:</strong></p>
+                    <ul>
+                        <li><strong>Leaflet Extensions:</strong> Extends <code>L.Popup</code> to create draggable popups for point markers.</li>
+                        <li><strong>Map Initialization:</strong> Sets up the map with a default view centered at <code>[-0.425, 36.875]</code> with zoom level 14.</li>
+                        <li><strong>Road Points Data:</strong> Defines an array of 34 road points with coordinates, images, names, and groups (A to G).</li>
+                        <li><strong>Pathfinding:</strong> Implements <code>findSequentialPath</code> and <code>findShortestPathBetweenGroups</code> to calculate routes along predefined road segments.</li>
+                        <li><strong>Event Listeners:</strong> Handles clicks, dropdown changes, and button interactions to manage points and update the UI.</li>
+                        <li><strong>Distance Calculation:</strong> Uses Leaflet’s <code>distanceTo</code> method to compute total distance between points.</li>
+                        <li><strong>UI Updates:</strong> Dynamically updates route details, markers, and distance/time displays.</li>
+                    </ul>
+                </div>
+                <div class="collapsible">
+                    <h3>Data Structure</h3>
+                    <p><strong>Road Points:</strong> An array of objects with properties:</p>
+                    <ul>
+                        <li><code>coords:</code> <code>[latitude, longitude]</code></li>
+                        <li><code>img:</code> Image filename (e.g., <code>image1.jpg</code>)</li>
+                        <li><code>name:</code> Point name (e.g., <code>Point 1</code>)</li>
+                        <li><code>group:</code> Group identifier (e.g., <code>A</code>, <code>B</code>, etc.)</li>
+                    </ul>
+                    <p><strong>Grouped Road Points:</strong> Organized into groups (A to G) for sequential pathfinding.</p>
+                    <p><strong>Clicked Points:</strong> Stores user-selected points as <code>L.LatLng</code> objects for route calculation.</p>
+                </div>
+            </section>
+
+            <section id="setup">
+                <h2>Setup Instructions</h2>
+                <div class="collapsible">
+                    <h3>Prerequisites</h3>
+                    <ul>
+                        <li>A modern web browser (e.g., Chrome, Firefox, Edge).</li>
+                        <li>Internet access to load Leaflet.js, OpenStreetMap tiles, and Google Maps icons.</li>
+                        <li>A local server (optional) for testing to avoid CORS issues with local image files.</li>
+                    </ul>
+                </div>
+                <div class="collapsible">
+                    <h3>Installation</h3>
+                    <ol>
+                        <li><strong>Clone or Download the Project:</strong>
+                            <ul>
+                                <li>Copy the provided <code>index.html</code> file into a project directory.</li>
+                                <li>Create an <code>images/</code> folder and place the required image files (<code>image1.jpg</code> to <code>image28.jpg</code>) referenced in <code>roadPointsData</code>.</li>
+                            </ul>
+                        </li>
+                        <li><strong>Host the Application:</strong>
+                            <ul>
+                                <li><strong>Option 1:</strong> Open <code>index.html</code> directly in a browser (note: local image loading may fail due to CORS).</li>
+                                <li><strong>Option 2:</strong> Use a local server:
+                                    <ul>
+                                        <li>Install Node.js and run <code>npm install -g http-server</code>.</li>
+                                        <li>Navigate to the project directory and run <code>http-server</code>.</li>
+                                        <li>Access the app at <code>http://localhost:8080</code>.</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                        <li><strong>Verify Dependencies:</strong>
+                            <ul>
+                                <li>Ensure the Leaflet CSS and JS files load correctly from <code>unpkg.com</code>.</li>
+                                <li>Confirm that the Google Maps icons (<code>green-dot.png</code>, <code>red-dot.png</code>) are accessible.</li>
+                            </ul>
+                        </li>
+                    </ol>
+                </div>
+                <div class="collapsible">
+                    <h3>Running the Application</h3>
+                    <ul>
+                        <li>Open the application in a web browser.</li>
+                        <li>The map will load centered on the predefined road points.</li>
+                        <li>Use the sidebar and controls to interact with the map and calculate distances.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="usage">
+                <h2>Usage Guide</h2>
+                <div class="collapsible">
+                    <h3>Selecting Points</h3>
+                    <ul>
+                        <li><strong>Restricted Mode (default):</strong>
+                            <ul>
+                                <li>Click on yellow circle markers to select predefined road points.</li>
+                                <li>Use the dropdown in the sidebar to select points by name.</li>
+                            </ul>
+                        </li>
+                        <li><strong>Select Anywhere Mode:</strong>
+                            <ul>
+                                <li>Click the "Restrict to Road Points" button to toggle to "Select Anywhere".</li>
+                                <li>Click the <code>+</code> button to enable map clicking, then click anywhere on the map to add a point.</li>
+                                <li>Enter latitude and longitude in the sidebar and click "Add Manual Point".</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+                <div class="collapsible">
+                    <h3>Viewing Routes</h3>
+                    <ul>
+                        <li>Select at least two points to calculate the distance and time.</li>
+                        <li>Enable "Show Distance Track" to visualize the route as a polyline (red in restricted mode, green in free mode).</li>
+                        <li>The total distance (in meters) and estimated travel time (in minutes) appear at the bottom left.</li>
+                    </ul>
+                </div>
+                <div class="collapsible">
+                    <h3>Adjusting Settings</h3>
+                    <ul>
+                        <li>Change the speed (km/h) in the controls to update the travel time estimate.</li>
+                        <li>Drag the controls panel or popups to reposition them.</li>
+                        <li>Click "Clear Points" to reset the map and remove all selections.</li>
+                    </ul>
+                </div>
+                <div class="collapsible">
+                    <h3>Mobile Usage</h3>
+                    <ul>
+                        <li>Tap the <code>☰</code> button to toggle the sidebar.</li>
+                        <li>Use the same controls as on desktop, adjusted for smaller screens.</li>
+                        <li>Distance and time estimates remain visible below the map.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="limitations">
+                <h2>Known Limitations</h2>
+                <div class="collapsible">
+                    <h3>Image Loading</h3>
+                    <ul>
+                        <li>Local image files (<code>image1.jpg</code> to <code>image28.jpg</code>) may not load correctly without a server due to CORS restrictions.</li>
+                        <li>Ensure images are hosted or use a local server for testing.</li>
+                    </ul>
+                </div>
+                <div class="collapsible">
+                    <h3>Pathfinding</h3>
+                    <ul>
+                        <li>In restricted mode, paths are calculated along predefined groups, which may not always reflect real-world road networks.</li>
+                        <li>Cross-group pathfinding relies on shared points, which may limit route options.</li>
+                    </ul>
+                </div>
+                <div class="collapsible">
+                    <h3>Performance</h3>
+                    <ul>
+                        <li>Large numbers of points or complex pathfinding may slow down the application on low-end devices.</li>
+                        <li>The map may require internet access for tile loading.</li>
+                    </ul>
+                </div>
+                <div class="collapsible">
+                    <h3>Mobile Experience</h3>
+                    <ul>
+                        <li>Dragging popups or controls may be less precise on touch devices.</li>
+                        <li>Sidebar toggle may obscure part of the map on very small screens.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="enhancements">
+                <h2>Future Enhancements</h2>
+                <div class="collapsible">
+                    <h3>Real-World Routing</h3>
+                    <ul>
+                        <li>Integrate a routing API (e.g., OSRM, GraphHopper) for accurate road-based distance calculations.</li>
+                        <li>Support turn-by-turn navigation instructions.</li>
+                    </ul>
+                </div>
+                <div class="collapsible">
+                    <h3>Offline Support</h3>
+                    <ul>
+                        <li>Cache map tiles and images for offline use.</li>
+                        <li>Store road points data locally using IndexedDB or similar.</li>
+                    </ul>
+                </div>
+                <div class="collapsible">
+                    <h3>UI Improvements</h3>
+                    <ul>
+                        <li>Add undo/redo functionality for point selection.</li>
+                        <li>Enhance mobile touch support for dragging elements.</li>
+                        <li>Provide customizable themes (e.g., dark mode).</li>
+                    </ul>
+                </div>
+                <div class="collapsible">
+                    <h3>Data Management</h3>
+                    <ul>
+                        <li>Allow users to import/export road points data.</li>
+                        <li>Support dynamic addition of new points via a form.</li>
+                    </ul>
+                </div>
+                <div class="collapsible">
+                    <h3>Performance Optimization</h3>
+                    <ul>
+                        <li>Optimize pathfinding algorithms for larger datasets.</li>
+                        <li>Use Web Workers for heavy computations.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="troubleshooting">
+                <h2>Troubleshooting</h2>
+                <div class="collapsible">
+                    <h3>Map Not Loading</h3>
+                    <ul>
+                        <li>Check internet connectivity for OpenStreetMap tiles and Leaflet resources.</li>
+                        <li>Verify the Leaflet CDN URLs are correct and accessible.</li>
+                    </ul>
+                </div>
+                <div class="collapsible">
+                    <h3>Images Not Displaying</h3>
+                    <ul>
+                        <li>Ensure the <code>images/</code> folder contains all required files (<code>image1.jpg</code> to <code>image28.jpg</code>).</li>
+                        <li>Use a local server to avoid CORS issues.</li>
+                    </ul>
+                </div>
+                <div class="collapsible">
+                    <h3>Distance/Time Not Visible</h3>
+                    <ul>
+                        <li>Confirm the <code>#distance</code> and <code>#timeEstimate</code> elements have <code>opacity: 1</code> and <code>z-index: 1003</code> in media queries.</li>
+                        <li>Check for JavaScript errors in the console that may prevent <code>updateDistanceAndTrack</code> from running.</li>
+                    </ul>
+                </div>
+                <div class="collapsible">
+                    <h3>Sidebar Issues on Mobile</h3>
+                    <ul>
+                        <li>Ensure the sidebar toggle (<code>#sidebar-toggle</code>) is visible and functional.</li>
+                        <li>Verify that media queries correctly adjust the sidebar’s <code>transform</code> and <code>width</code>.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="license">
+                <h2>License</h2>
+                <p>This project is licensed under the MIT License. You are free to use, modify, and distribute the code, provided the original license is included.</p>
+            </section>
+
+            <section id="contact">
+                <h2>Contact</h2>
+                <p>For questions, bug reports, or contributions, please contact   ::<p>Explore my GitHub projects and contributions: <a href="https://github.com/CELESTAKIM/">Check out my profile</a>!</p>
+                .</p>
+            </section>
+        </main>
+    </div>
+    <script>
+        // Sidebar toggle for mobile
+document.querySelector('.sidebar-toggle').addEventListener('click', () => {
+    document.querySelector('.sidebar').classList.toggle('active');
+});
+
+// Close sidebar when clicking outside on mobile
+document.addEventListener('click', (e) => {
+    const sidebar = document.querySelector('.sidebar');
+    const toggle = document.querySelector('.sidebar-toggle');
+    if (window.innerWidth <= 768 && sidebar.classList.contains('active') && !sidebar.contains(e.target) && e.target !== toggle) {
+        sidebar.classList.remove('active');
+    }
+});
+
+// Collapsible sections
+document.querySelectorAll('.collapsible h3').forEach(header => {
+    header.addEventListener('click', () => {
+        const collapsible = header.parentElement;
+        collapsible.classList.toggle('active');
+    });
+});
+
+// Smooth scroll for sidebar links
+document.querySelectorAll('.sidebar ul li a').forEach(anchor => {
+    anchor.addEventListener('click', (e) => {
+        e.preventDefault();
+        const targetId = anchor.getAttribute('href').substring(1);
+        const targetElement = document.getElementById(targetId);
+        targetElement.scrollIntoView({ behavior: 'smooth' });
+        if (window.innerWidth <= 768) {
+            document.querySelector('.sidebar').classList.remove('active');
+        }
+    });
+});
+    </script>
+</body>
+</html>
