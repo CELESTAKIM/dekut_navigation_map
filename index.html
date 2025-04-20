@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚦Road Distance Calculator</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: row;
+            height: 100vh;
+            overflow: hidden;
+        }
+        #sidebar {
+            width: 250px;
+            padding: 15px;
+            background-color: #f4f4f4;
+            border-right: 1px solid #ccc;
+            height: 100vh;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+            z-index: 1001;
+        }
+        #sidebar h2 {
+            font-size: 1.2rem;
+            margin: 10px 0;
+        }
+        #sidebar label {
+            display: block;
+            margin: 5px 0;
+            font-size: 0.9rem;
+        }
+        #sidebar input, #sidebar select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        #sidebar button {
+            width: 100%;
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        #sidebar button:hover {
+            background-color: #218838;
+        }
+        #map-container {
+            flex: 1;
+            position: relative;
+            height: 100vh;
+        }
+        #map {
+            height: 100%;
+            width: 100%;
+            z-index: 1000;
+        }
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 10px;
+            align-items: center;
+            position: absolute;
+            top: 50px;
+            left: 10px;
+            z-index: 1002;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            cursor: move;
+        }
+        #toggleButton, #clearButton, #addPointButton {
+            padding: 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            min-width: 100px;
+        }
+        #addPointButton {
+            min-width: 40px;
+            font-size: 1rem;
+        }
+        .enabled {
+            background-color: red;
+            color: white;
+        }
+        .disabled {
+            background-color: blue;
+            color: white;
+        }
+        .popup-image {
+            width: 100%;
+            max-width: 150px;
+            height: auto;
+        }
+        #route-details {
+            margin-top: 20px;
+            font-size: 0.9rem;
+        }
+        #route-details ul {
+            list-style: none;
+            padding: 0;
+        }
+        #route-details li {
+            margin: 5px 0;
+        }
+        #sidebar-toggle {
+            display: none;
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 1003;
+            padding: 10px;
+            background-color: #333;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1.4rem;
+        }
+        h1 {
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50%;
+            background-color: white;
+            z-index: 1002;
+            padding: 1px;
+            text-align: center;
+            margin: 0;
+            font-size: 1.5rem;
+            border-radius: 4px;
+        }
+        #distance, #timeEstimate {
+            position: absolute;
+            left: 10px;
+            z-index: 1002;
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 5px 10px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            margin: 0;
+            font-size: 1rem;
+            font-weight: bold;
+        }
+        #distance {
+            bottom: 50px;
+        }
+        #timeEstimate {
+            bottom: 10px;
+        }
+        .leaflet-popup-content-wrapper {
+            cursor: move;
+        }
+        .leaflet-popup {
+            z-index: 1004;
+        }
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+            #sidebar {
+                position: fixed;
+                width: 100%;
+                height: 100%;
+                transform: translateX(-100%);
+                background-color: #fff;
+                box-shadow: 2px 0 5px rgba(0,0,0,0.3);
+            }
+            #sidebar.active {
+                transform: translateX(0);
+            }
+            #map-container {
+                height: 100vh;
+                width: 100%;
+            }
+            #sidebar-toggle {
+                display: block;
+            }
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+                left: 70px;
+                top: 40px;
+            }
+            #toggleButton, #clearButton, #addPointButton {
+                width: 100%;
+                min-width: unset;
+            }
+            #addPointButton {
+                width: 100%;
+                min-width: unset;
+            }
+            h1 {
+                font-size: 1.2rem;
+                top: 5px;
+                width: 80%;
+            }
+            #distance, #timeEstimate {
+                font-size: 0.9rem;
+            }
+            #distance {
+                bottom: 40px;
+            }
+            #timeEstimate {
+                bottom: 10px;
+            }
+        }
+        @media (max-width: 480px) {
+            #sidebar h2 {
+                font-size: 1rem;
+            }
+            #sidebar label, #sidebar input, #sidebar select, #sidebar button {
+                font-size: 0.8rem;
+            }
+            .controls {
+                margin: 5px;
+                padding: 5px;
+                left: 60px;
+            }
+            #toggleButton, #clearButton, #addPointButton {
+                padding: 6px;
+                font-size: 0.8rem;
+            }
+            h1 {
+                font-size: 1rem;
+                width: 90%;
+            }
+            #sidebar-toggle {
+                padding: 8px;
+                font-size: 1.2rem;
+            }
+            #distance, #timeEstimate {
+                font-size: 0.8rem;
+            }
+            #distance {
+                bottom: 35px;
+            }
+            #timeEstimate {
+                bottom: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button id="sidebar-toggle">☰</button>
+    <div id="sidebar">
+        <h2>Route Details</h2>
+        <div id="route-details">
+            <p>No points selected.</p>
+        </div>
+        <h2>Add Point</h2>
+        <label>
+            Select Road Point:
+            <select id="pointDropdown">
+                <option value="">-- Select a point --</option>
+            </select>
+        </label>
+        <label>
+            Latitude:
+            <input type="number" id="latInput" step="any" placeholder="e.g., -0.393306">
+        </label>
+        <label>
+            Longitude:
+            <input type="number" id="lonInput" step="any" placeholder="e.g., 36.958407">
+        </label>
+        <button id="addManualPointButton">Add Manual Point</button>
+    </div>
+    <div id="map-container">
+        <h1>Road Distance Calculator🚦</h1>
+        <div class="controls">
+            <button id="toggleButton" class="enabled">Restrict to Road Points</button>
+            <button id="clearButton">Clear Points</button>
+            <button id="addPointButton">+</button>
+            <label>
+                <input type="checkbox" id="trackCheckbox"> Show Distance Track
+            </label>
+            <label>
+                Speed (km/h): <input type="number" id="speedInput" min="1" value="50">
+            </label>
+        </div>
+        <div id="map"></div>
+        <p id="distance"></p>
+        <p id="timeEstimate"></p>
+    </div>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        // Extend Leaflet Popup to make it draggable
+        L.DraggablePopup = L.Popup.extend({
+            _initLayout: function () {
+                L.Popup.prototype._initLayout.call(this);
+                var container = this._container;
+                container.className += ' draggable-popup';
+                var wrapper = this._wrapper = L.DomUtil.create('div', 'leaflet-popup-draggable-wrapper', container);
+                wrapper.appendChild(this._contentNode);
+                var draggable = new L.Draggable(container, this._contentNode);
+                draggable.enable();
+                draggable.on('drag', this._onDrag, this);
+            },
+            _onDrag: function (e) {
+                var pos = e.target._newPos;
+                var latlng = this._map.containerPointToLatLng(pos);
+                this.setLatLng(latlng);
+            }
+        });
+        L.draggablePopup = function (options, source) {
+            return new L.DraggablePopup(options, source);
+        };
+        var map = L.map('map').setView([-0.425, 36.875], 14);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        sidebarToggle.addEventListener('click', () => {
+            console.log('Toggling sidebar');
+            sidebar.classList.toggle('active');
+        });
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth <= 768 && sidebar.classList.contains('active') && !sidebar.contains(e.target) && e.target !== sidebarToggle) {
+                console.log('Closing sidebar due to click outside');
+                sidebar.classList.remove('active');
+            }
+        });
+        // Make controls draggable
+        const controls = document.querySelector('.controls');
+        const draggableControls = new L.Draggable(controls);
+        draggableControls.enable();
+        draggableControls.on('drag', function (e) {
+            controls.style.left = e.target._newPos.x + 'px';
+            controls.style.top = e.target._newPos.y + 'px';
+        });
+        var roadPointsData = [
+            { coords: [-0.3964140836513385, 36.95768055971324], img: "image1.jpg", name: "Point 1", group: "A" },
+            { coords: [-0.3958121050091234, 36.95862143003552], img: "image2.jpg", name: "Point 2", group: "A" },
+            { coords: [-0.39558914995645106, 36.958982617220855], img: "image3.jpg", name: "Point 3", group: "A" },
+            { coords: [-0.3962446378113077, 36.96149755021499], img: "image4.jpg", name: "Point 4", group: "A" },
+            { coords: [-0.3950852715374117, 36.961586732236064], img: "image5.jpg", name: "Point 5", group: "A" },
+            { coords: [-0.39514769895216, 36.96273718030784], img: "image6.jpg", name: "Point 6", group: "A" },
+            { coords: [-0.3988933438370545, 36.96248747064886], img: "image7.jpg", name: "Point 7", group: "A" },
+            { coords: [-0.3958121050091234, 36.95862143003552], img: "image2.jpg", name: "Point 2a", group: "B" },
+            { coords: [-0.3962268014070938, 36.959027208231376], img: "image8.jpg", name: "Point 8", group: "B" },
+            { coords: [-0.3968064845440419, 36.9594285273262], img: "image9.jpg", name: "Point 9", group: "B" },
+            { coords: [-0.397078489708302, 36.960641402812726], img: "image10.jpg", name: "Point 10", group: "B" },
+            { coords: [-0.3971319989209433, 36.96088665337067], img: "image11.jpg", name: "Point 11", group: "B" },
+            { coords: [-0.397078489708302, 36.960641402812726], img: "image10.jpg", name: "Point 10b", group: "C" },
+            { coords: [-0.39819772407271686, 36.96047641607375], img: "image12.jpg", name: "Point 12", group: "C" },
+            { coords: [-0.3983939245190685, 36.9605878936001], img: "image13.jpg", name: "Point 13", group: "C" },
+            { coords: [-0.3984652701359237, 36.960779634945396], img: "image14.jpg", name: "Point 14", group: "C" },
+            { coords: [-0.3983939245190685, 36.9605878936001], img: "image13.jpg", name: "Point 13c", group: "D" },
+            { coords: [-0.3986703887843822, 36.96090448977488], img: "image15.jpg", name: "Point 15", group: "D" },
+            { coords: [-0.39871052069386315, 36.96107839471597], img: "image16.jpg", name: "Point 16", group: "D" },
+            { coords: [-0.39869714339070295, 36.963058235583695], img: "image17.jpg", name: "Point 17", group: "D" },
+            { coords: [-0.3958121050091234, 36.95862143003552], img: "image2.jpg", name: "Point 2d", group: "E" },
+            { coords: [-0.39445653828887584, 36.95864372554079], img: "image18.jpg", name: "Point 18", group: "E" },
+            { coords: [-0.3933060902170868, 36.958407393184956], img: "image19.jpg", name: "Point 19", group: "E" },
+            { coords: [-0.3931500216802162, 36.95743085005425], img: "image20.jpg", name: "Point 20", group: "E" },
+            { coords: [-0.3933060902170868, 36.958407393184956], img: "image19.jpg", name: "Point 19e", group: "F" },
+            { coords: [-0.39278883449488705, 36.95842968869022], img: "image21.jpg", name: "Point 21", group: "F" },
+            { coords: [-0.39267735696855083, 36.95727924061843], img: "image22.jpg", name: "Point 22", group: "F" },
+            { coords: [-0.3912326082272345, 36.95719897679947], img: "image23.jpg", name: "Point 23", group: "F" },
+            { coords: [-0.3909293893556001, 36.957591377692175], img: "image24.jpg", name: "Point 24", group: "F" },
+            { coords: [-0.3933060902170868, 36.958407393184956], img: "image19.jpg", name: "Point 19f", group: "G" },
+            { coords: [-0.3931411034781093, 36.9602712974253], img: "image25.jpg", name: "Point 25", group: "G" },
+            { coords: [-0.3938456414445537, 36.96142174549709], img: "image26.jpg", name: "Point 26", group: "G" },
+            { coords: [-0.3942023695288295, 36.96087327606751], img: "image27.jpg", name: "Point 27", group: "G" },
+            { coords: [-0.3943495198635931, 36.96092678528016], img: "image28.jpg", name: "Point 28", group: "G" }
+        ];
+        var groupedRoadPoints = roadPointsData.reduce(function (acc, point) {
+            acc[point.group] = acc[point.group] || [];
+            acc[point.group].push(point);
+            return acc;
+        }, {});
+        var roadLines = {};
+        for (var group in groupedRoadPoints) {
+            var pointsInGroup = groupedRoadPoints[group].map(p => p.coords);
+            roadLines[group] = L.polyline(pointsInGroup, {color: 'blue', weight: 2, opacity: 0.7}).addTo(map);
+        }
+        var clickedPoints = [];
+        var trackedPath = null;
+        var startMarker = null;
+        var endMarker = null;
+        var restrictToRoadPoints = true;
+        var dropdown = document.getElementById("pointDropdown");
+        roadPointsData.forEach(point => {
+            var option = document.createElement("option");
+            option.value = JSON.stringify(point.coords);
+            option.text = `${point.name} (${point.group})`;
+            dropdown.appendChild(option);
+        });
+        roadPointsData.forEach(function(point) {
+            var marker = L.circleMarker(point.coords, {radius: 8, color: 'yellow', fillOpacity: 0.8}).addTo(map);
+            marker.bindPopup(L.draggablePopup({
+                offset: L.point(0, -10)
+            }).setContent(`<strong>${point.name}</strong><br><img class='popup-image' src="${point.img}" alt="Location Image">`));
+            marker.on("mouseover", function() { this.openPopup(); });
+            marker.on("mouseout", function() { this.closePopup(); });
+            marker.on("click", function() {
+                var markerLatLng = marker.getLatLng();
+                addPoint(markerLatLng);
+            });
+        });
+        document.getElementById("toggleButton").addEventListener("click", function() {
+            restrictToRoadPoints = !restrictToRoadPoints;
+            this.textContent = restrictToRoadPoints ? "Restrict to Road Points" : "Select Anywhere";
+            this.className = restrictToRoadPoints ? "enabled" : "disabled";
+            clearClickedPoints();
+        });
+        document.getElementById("clearButton").addEventListener("click", clearClickedPoints);
+        document.getElementById("addPointButton").addEventListener("click", function() {
+            restrictToRoadPoints = false;
+            document.getElementById("toggleButton").textContent = "Select Anywhere";
+            document.getElementById("toggleButton").className = "disabled";
+            map.on('click', handleMapClick);
+        });
+        document.getElementById("pointDropdown").addEventListener("change", function() {
+            if (this.value) {
+                var coords = JSON.parse(this.value);
+                addPoint(L.latLng(coords[0], coords[1]));
+                this.value = "";
+            }
+        });
+        document.getElementById("addManualPointButton").addEventListener("click", function() {
+            var lat = parseFloat(document.getElementById("latInput").value);
+            var lon = parseFloat(document.getElementById("lonInput").value);
+            if (!isNaN(lat) && !isNaN(lon)) {
+                if (!restrictToRoadPoints) {
+                    addPoint(L.latLng(lat, lon));
+                    document.getElementById("latInput").value = "";
+                    document.getElementById("lonInput").value = "";
+                } else {
+                    alert("Manual points can only be added in 'Select Anywhere' mode.");
+                }
+            } else {
+                alert("Please enter valid latitude and longitude values.");
+            }
+        });
+        function clearClickedPoints() {
+            clickedPoints = [];
+            document.getElementById("distance").innerText = "";
+            document.getElementById("timeEstimate").innerText = "";
+            if (trackedPath) {
+                map.removeLayer(trackedPath);
+                trackedPath = null;
+            }
+            if (startMarker) {
+                map.removeLayer(startMarker);
+                startMarker = null;
+            }
+            if (endMarker) {
+                map.removeLayer(endMarker);
+                endMarker = null;
+            }
+            map.off('click', handleMapClick);
+            updateRouteDetails();
+        }
+        function handleMapClick(e) {
+            if (!restrictToRoadPoints) {
+                addPoint(e.latlng);
+            }
+        }
+        function addPoint(latLng) {
+            if (restrictToRoadPoints) {
+                var nearestPoint = findNearestRoadPoint(latLng);
+                if (nearestPoint) {
+                    latLng = L.latLng(nearestPoint.coords);
+                    if (clickedPoints.length < 2) {
+                        clickedPoints.push(latLng);
+                        if (clickedPoints.length === 2) {
+                            clickedPoints = findSequentialPath(clickedPoints[0], clickedPoints[1]);
+                        }
+                    }
+                }
+            } else {
+                clickedPoints.push(latLng);
+            }
+            updateMarkers();
+            updateDistanceAndTrack();
+            updateRouteDetails();
+        }
+        function findNearestRoadPoint(point) {
+            var minDistance = Infinity;
+            var nearest = null;
+            for (var i = 0; i < roadPointsData.length; i++) {
+                var p = L.latLng(roadPointsData[i].coords);
+                var distance = point.distanceTo(p);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    nearest = roadPointsData[i];
+                }
+            }
+            return nearest;
+        }
+        function findSequentialPath(startPoint, endPoint) {
+            var startInfo = findPointIndex(startPoint);
+            var endInfo = findPointIndex(endPoint);
+            if (!startInfo || !endInfo) {
+                return [startPoint];
+            }
+            if (startInfo.group === endInfo.group) {
+                var groupPoints = groupedRoadPoints[startInfo.group];
+                var startIdx = groupPoints.findIndex(p => L.latLng(p.coords).equals(startPoint, 0.0001));
+                var endIdx = groupPoints.findIndex(p => L.latLng(p.coords).equals(endPoint, 0.0001));
+                if (startIdx <= endIdx) {
+                    return groupPoints.slice(startIdx, endIdx + 1).map(p => L.latLng(p.coords));
+                } else {
+                    return groupPoints.slice(endIdx, startIdx + 1).map(p => L.latLng(p.coords)).reverse();
+                }
+            } else {
+                var path = findShortestPathBetweenGroups(startInfo, endInfo);
+                return path;
+            }
+        }
+        function findPointIndex(point) {
+            for (var i = 0; i < roadPointsData.length; i++) {
+                if (L.latLng(roadPointsData[i].coords).equals(point, 0.0001)) {
+                    return { index: i, group: roadPointsData[i].group };
+                }
+            }
+            return null;
+        }
+        function findShortestPathBetweenGroups(startInfo, endInfo) {
+            var startGroup = startInfo.group;
+            var endGroup = endInfo.group;
+            var startLatLng = L.latLng(roadPointsData[startInfo.index].coords);
+            var endLatLng = L.latLng(roadPointsData[endInfo.index].coords);
+            var sharedPoints = [];
+            roadPointsData.forEach((point, idx) => {
+                var count = roadPointsData.filter(p => L.latLng(p.coords).equals(L.latLng(point.coords), 0.0001)).length;
+                if (count > 1 && !sharedPoints.some(sp => L.latLng(sp.coords).equals(L.latLng(point.coords), 0.0001))) {
+                    sharedPoints.push({ coords: point.coords, group: point.group, index: idx });
+                }
+            });
+            var shortestPath = [];
+            var minDistance = Infinity;
+            sharedPoints.forEach(sharedPoint => {
+                var sharedLatLng = L.latLng(sharedPoint.coords);
+                var sharedGroup = sharedPoint.group;
+                var pathToShared = [];
+                if (startGroup === sharedGroup) {
+                    var groupPoints = groupedRoadPoints[startGroup];
+                    var startIdx = groupPoints.findIndex(p => L.latLng(p.coords).equals(startLatLng, 0.0001));
+                    var sharedIdx = groupPoints.findIndex(p => L.latLng(p.coords).equals(sharedLatLng, 0.0001));
+                    if (startIdx <= sharedIdx) {
+                        pathToShared = groupPoints.slice(startIdx, sharedIdx + 1).map(p => L.latLng(p.coords));
+                    } else {
+                        pathToShared = groupPoints.slice(sharedIdx, startIdx + 1).map(p => L.latLng(p.coords)).reverse();
+                    }
+                }
+                var pathFromShared = [];
+                if (endGroup === sharedGroup) {
+                    var groupPoints = groupedRoadPoints[endGroup];
+                    var sharedIdx = groupPoints.findIndex(p => L.latLng(p.coords).equals(sharedLatLng, 0.0001));
+                    var endIdx = groupPoints.findIndex(p => L.latLng(p.coords).equals(endLatLng, 0.0001));
+                    if (sharedIdx <= endIdx) {
+                        pathFromShared = groupPoints.slice(sharedIdx, endIdx + 1).map(p => L.latLng(p.coords));
+                    } else {
+                        pathFromShared = groupPoints.slice(endIdx, sharedIdx + 1).map(p => L.latLng(p.coords)).reverse();
+                    }
+                }
+                if (pathToShared.length > 0 && pathFromShared.length > 0) {
+                    var fullPath = pathToShared.concat(pathFromShared.slice(1));
+                    var distance = calculateTotalDistance(fullPath);
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        shortestPath = fullPath;
+                    }
+                }
+            });
+            if (shortestPath.length === 0) {
+                var visitedGroups = new Set([startGroup]);
+                var queue = [{ group: startGroup, path: [startLatLng], distance: 0 }];
+                var groupConnections = {};
+                Object.keys(groupedRoadPoints).forEach(group => {
+                    groupConnections[group] = new Set();
+                    groupedRoadPoints[group].forEach(point => {
+                        roadPointsData.forEach(otherPoint => {
+                            if (otherPoint.group !== group && L.latLng(point.coords).equals(L.latLng(otherPoint.coords), 0.0001)) {
+                                groupConnections[group].add(otherPoint.group);
+                            }
+                        });
+                    });
+                });
+                while (queue.length > 0) {
+                    var { group, path, distance } = queue.shift();
+                    if (group === endGroup) {
+                        var endIdx = groupedRoadPoints[endGroup].findIndex(p => L.latLng(p.coords).equals(endLatLng, 0.0001));
+                        var lastPointIdx = groupedRoadPoints[group].findIndex(p => L.latLng(p.coords).equals(path[path.length - 1], 0.0001));
+                        var finalPath = path;
+                        if (lastPointIdx <= endIdx) {
+                            finalPath = path.concat(groupedRoadPoints[endGroup].slice(lastPointIdx + 1, endIdx + 1).map(p => L.latLng(p.coords)));
+                        } else {
+                            finalPath = path.concat(groupedRoadPoints[endGroup].slice(endIdx, lastPointIdx).map(p => L.latLng(p.coords)).reverse());
+                        }
+                        if (distance < minDistance) {
+                            minDistance = distance;
+                            shortestPath = finalPath;
+                        }
+                        continue;
+                    }
+                    groupConnections[group].forEach(nextGroup => {
+                        if (!visitedGroups.has(nextGroup)) {
+                            visitedGroups.add(nextGroup);
+                            var sharedPoint = roadPointsData.find(p => p.group === nextGroup && groupedRoadPoints[group].some(gp => L.latLng(gp.coords).equals(L.latLng(p.coords), 0.0001)));
+                            if (sharedPoint) {
+                                var sharedLatLng = L.latLng(sharedPoint.coords);
+                                var groupPoints = groupedRoadPoints[group];
+                                var startIdx = groupPoints.findIndex(p => L.latLng(p.coords).equals(path[path.length - 1], 0.0001));
+                                var sharedIdx = groupPoints.findIndex(p => L.latLng(p.coords).equals(sharedLatLng, 0.0001));
+                                var segmentPath = [];
+                                if (startIdx <= sharedIdx) {
+                                    segmentPath = groupPoints.slice(startIdx, sharedIdx + 1).map(p => L.latLng(p.coords));
+                                } else {
+                                    segmentPath = groupPoints.slice(sharedIdx, startIdx + 1).map(p => L.latLng(p.coords)).reverse();
+                                }
+                                var segmentDistance = calculateTotalDistance(segmentPath);
+                                queue.push({
+                                    group: nextGroup,
+                                    path: path.concat(segmentPath.slice(1)),
+                                    distance: distance + segmentDistance
+                                });
+                            }
+                        }
+                    });
+                }
+            }
+            return shortestPath.length > 0 ? shortestPath : [startLatLng, endLatLng];
+        }
+        function updateMarkers() {
+            if (startMarker) map.removeLayer(startMarker);
+            if (endMarker) map.removeLayer(endMarker);
+            if (clickedPoints.length > 0) {
+                startMarker = L.marker(clickedPoints[0], {icon: L.icon({iconUrl: "https://maps.google.com/mapfiles/ms/icons/green-dot.png"})}).addTo(map);
+            }
+            if (clickedPoints.length >= 2) {
+                endMarker = L.marker(clickedPoints[clickedPoints.length - 1], {icon: L.icon({iconUrl: "https://maps.google.com/mapfiles/ms/icons/red-dot.png"})}).addTo(map);
+            }
+        }
+        function updateDistanceAndTrack() {
+            if (clickedPoints.length >= 2) {
+                var distance = calculateTotalDistance(clickedPoints);
+                var speed = parseFloat(document.getElementById("speedInput").value) || 50;
+                var time = distance / (speed * 1000 / 60);
+                document.getElementById("distance").innerText = `Total Distance: ${distance.toFixed(2)} meters`;
+                document.getElementById("timeEstimate").innerText = `Estimated Travel Time: ${time.toFixed(2)} minutes`;
+                if (document.getElementById("trackCheckbox").checked) {
+                    if (trackedPath) map.removeLayer(trackedPath);
+                    var trackColor = restrictToRoadPoints ? "red" : "green";
+                    var trackWeight = restrictToRoadPoints ? 3 : 2;
+                    trackedPath = L.polyline(clickedPoints, {color: trackColor, weight: trackWeight}).addTo(map);
+                }
+            } else {
+                document.getElementById("distance").innerText = "";
+                document.getElementById("timeEstimate").innerText = "";
+                if (trackedPath) {
+                    map.removeLayer(trackedPath);
+                    trackedPath = null;
+                }
+            }
+        }
+        function calculateTotalDistance(points) {
+            var totalDistance = 0;
+            for (var i = 0; i < points.length - 1; i++) {
+                totalDistance += points[i].distanceTo(points[i + 1]);
+            }
+            return totalDistance;
+        }
+        function updateRouteDetails() {
+            var routeDetails = document.getElementById("route-details");
+            routeDetails.innerHTML = "";
+            if (clickedPoints.length === 0) {
+                routeDetails.innerHTML = "<p>No points selected.</p>";
+            } else {
+                var ul = document.createElement("ul");
+                clickedPoints.forEach((point, index) => {
+                    var pointInfo = roadPointsData.find(p => L.latLng(p.coords).equals(point, 0.0001));
+                    var name = pointInfo ? pointInfo.name : `Custom Point (${point.lat.toFixed(6)}, ${point.lng.toFixed(6)})`;
+                    var li = document.createElement("li");
+                    li.textContent = `${index === 0 ? 'Start' : index === clickedPoints.length - 1 ? 'End' : 'Waypoint'}: ${name}`;
+                    ul.appendChild(li);
+                });
+                if (clickedPoints.length >= 2 && restrictToRoadPoints) {
+                    var startPoint = roadPointsData.find(p => L.latLng(p.coords).equals(clickedPoints[0], 0.0001));
+                    var endPoint = roadPointsData.find(p => L.latLng(p.coords).equals(clickedPoints[clickedPoints.length - 1], 0.0001));
+                    var routeLi = document.createElement("li");
+                    routeLi.textContent = `Route: From ${startPoint ? startPoint.name : 'Start'} to ${endPoint ? endPoint.name : 'End'}`;
+                    ul.appendChild(routeLi);
+                }
+                routeDetails.appendChild(ul);
+            }
+        }
+        map.fitBounds(L.latLngBounds(roadPointsData.map(p => p.coords)));
+    </script>
+</body>
+</html>
